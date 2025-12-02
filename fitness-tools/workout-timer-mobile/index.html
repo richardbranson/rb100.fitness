@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="RB100 Timer">
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="apple-touch-startup-image" href="./icons/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+  <link rel="apple-touch-startup-image" href="./icons/splash-1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+  <title>rb100.fitness | Free Mobile Workout Timer</title>
+  <style>
+    :root {
+      --accent-work: #39ff14;
+      --accent-rest: #ef4444;
+      --accent-ready: #facc15;
+      --danger: #ef4444;
+      --radius: 18px;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+      --progress: 0deg;
+      --accent-phase: var(--accent-ready);
+    }
+
+    @font-face {
+      font-family: 'Digital7 Mono';
+      src: url('./digital-7-mono.woff2') format('woff2'),
+           url('./digital-7-mono.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", "Barlow", "Segoe UI", system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      transition: background 0.3s ease, color 0.3s ease;
+      overflow-x: hidden;
+    }
+
+    body.theme-dark {
+      --bg: #000;
+      --card: #0d0d0f;
+      --ink: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --surface: #0d0d10;
+      --track: #3a3a3f;
+      --button: #111111;
+      --ghost: rgba(255, 255, 255, 0.06);
+    }
+
+    body.theme-light {
+      --bg: radial-gradient(circle at 15% 10%, #fff7ed, #eef2ff 38%), #f8fafc;
+      --card: #ffffff;
+      --ink: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --surface: #e2e8f0;
+      --track: #e5e7eb;
+      --button: #e5e7eb;
+      --ghost: rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 100vh;
+    }
+
+    header.top {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+    }
+
+    .brand { display: flex; flex-direction: column; gap: 4px; align-items: center; margin-top: 10px; margin-bottom: 10px; }
+    .logo-mark {
+      width: 54px;
+      height: 54px;
+      border-radius: 12px;
+      background: radial-gradient(circle at 30% 30%, #ffffff, #9ca3af 55%), #111827;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+      display: none;
+    }
+    .logo-mark::before { content: 'RB'; position: absolute; top: 6px; left: 6px; font-weight: 900; letter-spacing: -0.04em; color: #ffffff; }
+    .logo-mark::after { content: '100'; position: absolute; bottom: 8px; right: 8px; font-weight: 800; letter-spacing: 0.02em; color: #9ca3af; }
+    .brand h1 { margin: 0; font-size: clamp(1.2rem, 4vw, 1.6rem); letter-spacing: -0.02em; }
+    .brand p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+    .toggles { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    .switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .switch input { display: none; }
+    .toggle-dot { width: 34px; height: 18px; border-radius: 999px; background: var(--track); position: relative; transition: background 0.2s ease; }
+    .toggle-dot::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.25); transition: transform 0.2s ease; }
+    .switch input:checked + .toggle-dot { background: var(--accent-ready); }
+    .switch input:checked + .toggle-dot::after { transform: translateX(16px); }
+
+    .flip-shell { perspective: 1400px; width: 100%; height: calc(100vh - 220px); min-height: 520px; position: relative; }
+    .card-3d { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.7s ease; }
+    .card-3d.flipped { transform: rotateY(180deg); }
+
+    .panel-face {
+      position: absolute;
+      inset: 0;
+      /* background: var(--card); */
+      /* border: 1px solid var(--border); */
+      border-radius: var(--radius);
+      /* box-shadow: var(--shadow); */
+      padding: 10px;
+      backface-visibility: hidden;
+      overflow: visible;
+    }
+
+    .panel-front { transform: rotateY(0deg); }
+    .panel-back { transform: rotateY(180deg); }
+    .panel-front.session { display: flex; flex-direction: column; }
+
+    .session-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .session-header p { margin: 0; color: var(--muted); }
+
+    .session-body { display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; padding: 0px; flex: 1; }
+    .grid-glow { position: absolute; inset: 0; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.05), transparent 30%), radial-gradient(circle at 80% 80%, rgba(59,130,246,0.08), transparent 38%); pointer-events: none; z-index: 0; }
+    .visor { display: grid; place-items: center; position: relative; z-index: 1; width: 100%; }
+
+    .ring {
+      width: min(720px, 90vw, 100%);
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      background: var(--ring-gradient, conic-gradient(var(--track) var(--progress), var(--accent-phase) 0));
+      position: relative;
+      display: grid;
+      place-items: center;
+      transition: background 0.2s ease;
+      margin: 0 auto;
+    }
+
+    .ring::after {
+      content: '';
+      position: absolute;
+      inset: 14px;
+      border-radius: 50%;
+      background: #0a0a0d;
+      box-shadow: inset 0 0 0 1px #121216;
+    }
+
+    .ring-inner { position: relative; z-index: 2; text-align: center; color: var(--ink); display: grid; gap: 6px; padding: 18px; top: -7% }
+    #phase-label { margin: 0; letter-spacing: 0.08em; font-weight: 800; font-size: clamp(2.6rem, 6vw, 2.6rem); }
+    #time-display { margin: 0; font-weight: 400; font-size: clamp(8rem, 30vw, 8rem); letter-spacing: 0.01em; font-family: 'Digital7 Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace; }
+    #sub-text { margin: 0; color: var(--muted); font-size: 1rem; }
+
+    .ring-controls {
+      position: absolute;
+      bottom: 12%;
+      left: 50%;
+      transform: translateX(-50%);
+      display: grid;
+      grid-auto-flow: column;
+      gap: 14px;
+      z-index: 3;
+    }
+
+    .icon-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 3px solid #fff;
+      background: rgba(255,255,255,0.06);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.1s ease, background 0.2s ease;
+    }
+
+    .icon-btn:active { transform: translateY(1px); }
+    .icon-btn.muted { border-color: #444; color: #444; background: rgba(255,255,255,0.02); cursor: not-allowed; }
+
+    .icon-play { border-left: 12px solid currentColor; border-top: 8px solid transparent; border-bottom: 8px solid transparent; width: 0; height: 0; margin-left: 6px; }
+    .icon-pause { display: grid; grid-auto-flow: column; gap: 6px; }
+    .icon-pause span { width: 6px; height: 18px; background: currentColor; border-radius: 2px; display: inline-block; }
+    .icon-reset { width: 18px; height: 18px; border: 3px solid currentColor; border-left-color: transparent; border-radius: 50%; position: relative; }
+    .icon-reset::after { content: ''; position: absolute; top: -4px; right: -4px; width: 0; height: 0; border-top: 6px solid currentColor; border-left: 6px solid transparent; transform: rotate(30deg); }
+
+    .session-meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--ink);
+      width: min(720px, 96%);
+      margin: 10px auto 0;
+    }
+
+    .session-meta p { margin: 0; color: var(--muted); }
+    .session-meta strong { color: var(--ink); }
+
+    .session-progress {
+      width: min(720px, 96%);
+      margin: 12px auto 0;
+      display: grid;
+      gap: 6px;
+      color: var(--ink);
+    }
+
+    .session-progress-top { display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
+    .session-progress-time { color: var(--muted); letter-spacing: 0.02em; }
+
+    .progress-shell {
+      width: 100%;
+      height: 12px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-work), var(--accent-ready));
+      transition: width 0.15s ease;
+    }
+
+    .controls { display: none; }
+
+    .mode-switch { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 12px 0; }
+    .chip { border-radius: 12px; border: 1px solid var(--border); padding: 25px; background: var(--surface); color: var(--ink); font-weight: 700; cursor: pointer; text-align: center; transition: transform 0.15s ease, box-shadow 0.15s ease, border 0.15s ease; }
+    .chip.active { border-color: var(--accent-ready); box-shadow: 3px 3px 5px rgba(250, 204, 21, 0.25); transform: translateY(-1px); }
+
+    .panel-setup { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .panel { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: var(--surface); display: none; }
+    .panel.active { display: block; }
+
+    .config-controls { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: var(--surface); display: grid; gap: 8px; margin-top: 10px;}
+    .config-controls h3 { margin: 0; font-size: 1rem; }
+
+    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+    label { display: block; font-weight: 800; margin-bottom: 4px; color: var(--ink); letter-spacing: 0.01em; }
+    .helper { margin: 4px 0 0; color: var(--muted); font-size: 0.9rem; }
+    input[type="number"] { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--ink); font-size: 1rem; }
+    input[type="number"]:focus { outline: 2px solid var(--accent-ready); border-color: var(--accent-ready); }
+    .errors { margin-top: 8px; color: var(--danger); font-weight: 700; min-height: 20px; }
+
+    .setup-footer { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+    .setup-footer > * { flex: 1; min-width: 220px; }
+    .share-block { flex: 1; display: grid; gap: 8px; min-width: 260px; }
+    .share-row { display: grid; gap: 8px; grid-template-columns: 1fr; }
+    #share-link { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--ink); font-weight: 700; }
+    #embed-snippet { width: 100%; min-height: 110px; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--ink); font-family: monospace; font-size: 0.9rem; }
+
+    .accordion { border: 1px solid var(--border); border-radius: 12px; background: var(--surface); width: 100%; }
+    .accordion summary { cursor: pointer; padding: 12px; font-weight: 800; list-style: none; display: flex; justify-content: space-between; align-items: center; color: var(--ink); }
+    .accordion summary::marker, .accordion summary::-webkit-details-marker { display: none; }
+    .accordion[open] { box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+    .accordion-content { padding: 0 12px 12px; display: grid; gap: 10px; }
+
+    .faq-btn { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); font-weight: 800; cursor: pointer; }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      padding: 16px;
+    }
+
+    .modal.active { opacity: 1; pointer-events: auto; }
+
+    .modal-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      width: min(540px, 96vw);
+      max-height: 82vh;
+      overflow: auto;
+      color: var(--ink);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+    }
+
+    .modal-card h3 { margin: 0 0 8px; }
+    .modal-card p { margin: 8px 0; color: var(--muted); }
+    .modal-close { margin-top: 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); cursor: pointer; width: 100%; font-weight: 700; }
+
+    body.session-mode { overflow: hidden; }
+    body.session-mode .flip-shell { height: calc(100vh - 180px); }
+
+    @media (max-width: 640px) {
+      .flip-shell { height: calc(100vh - 180px); }
+      .session-body { height: calc(100% - 110px); }
+      .ring-controls { bottom: 15%; }
+    }
+  </style>
+</head>
+<body class="theme-dark">
+  <main class="page" aria-live="polite">
+    <header class="top">
+      <div class="brand">
+        <h1>Free Mobile Workout Timer</h1>
+        <p>Flip between setup and a full-screen timer.</p>
+      </div>
+    </header>
+
+    <section class="flip-shell" aria-label="Timer interface">
+      <div class="card-3d flipped" id="card3d">
+        <section class="panel-face panel-front session" aria-label="Session view">
+          <div class="session-header">
+            <div>
+              <p id="mode-label">Countdown</p>
+              <strong id="status-text">Press start when ready.</strong>
+            </div>
+            <button class="ghost" id="to-setup-btn" style="padding: 10px;">Edit Setup</button>
+          </div>
+          <p id="sub-text">Set your times, then start.</p>
+          <div class="session-body">
+            <div class="grid-glow"></div>
+            <div class="visor">
+              <div class="ring" id="ring">
+                <div class="ring-inner">
+                  <p id="phase-label">READY</p>
+                  <p id="time-display">:00</p>
+                </div>
+                <div class="ring-controls">
+                  <button class="icon-btn" id="session-start-btn" aria-label="Start or resume">
+                    <div class="icon-play"></div>
+                  </button>
+                  <button class="icon-btn muted" id="session-reset-btn" aria-label="Reset">
+                    <div class="icon-reset"></div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="session-progress" aria-label="Overall session progress">
+            <div class="session-progress-top">
+              <span>Session</span>
+              <span class="session-progress-time" id="session-time">--:--</span>
+            </div>
+            <div class="progress-shell" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="session-progress-bar">
+              <div class="progress-fill" id="session-progress-fill"></div>
+            </div>
+          </div>
+          <div class="session-meta">
+            <p>Round/Minute: <strong id="round-label">1</strong></p>
+            <p>Phase: <strong id="phase-meta">Ready</strong></p>
+          </div>
+        </section>
+
+        <section class="panel-face panel-back card" aria-label="Setup view">
+          <div class="session-header">
+            <div>
+              <p class="eyebrow">Setup</p>
+              <strong>Choose your mode and timing blocks</strong>
+            </div>
+            <button class="ghost" id="to-session-btn" style="padding: 3px;">Session View</button>
+          </div>
+          <div class="mode-switch" role="tablist" aria-label="Timer modes">
+            <button class="chip active" role="tab" aria-selected="true" data-mode="countdown">Countdown</button>
+            <button class="chip" role="tab" aria-selected="false" data-mode="emom">EMOM</button>
+            <button class="chip" role="tab" aria-selected="false" data-mode="interval">Intervals</button>
+          </div>
+          <div class="panel-setup">
+            <form class="panel active" data-mode-form="countdown" aria-label="Countdown settings">
+              <div class="row">
+                <div>
+                  <label for="countdown-minutes">Minutes</label>
+                  <input id="countdown-minutes" name="minutes" type="number" inputmode="numeric" min="0" value="1" />
+                  <p class="helper">Total minutes for this single countdown block.</p>
+                </div>
+                <div>
+                  <label for="countdown-seconds">Seconds</label>
+                  <input id="countdown-seconds" name="seconds" type="number" inputmode="numeric" min="0" max="59" value="0" />
+                  <p class="helper">Add seconds for precision sprints.</p>
+                </div>
+              </div>
+              <div class="errors" data-errors></div>
+            </form>
+
+            <form class="panel" data-mode-form="emom" aria-label="EMOM settings">
+              <div class="row">
+                <div>
+                  <label for="emom-minutes">Total minutes</label>
+                  <input id="emom-minutes" name="minutes" type="number" inputmode="numeric" min="1" value="10" />
+                  <p class="helper">Total Length of the EMOM session.</p>
+                </div>
+                <div>
+                  <label for="emom-work">Work secs / min</label>
+                  <input id="emom-work" name="work" type="number" inputmode="numeric" min="5" max="60" value="45" />
+                  <p class="helper">How long to Work for, then rest to the next minute.</p>
+                </div>
+              </div>
+              <div class="errors" data-errors></div>
+            </form>
+
+            <form class="panel" data-mode-form="interval" aria-label="Interval settings">
+              <div class="row">
+                <div>
+                  <label for="interval-work">Work seconds</label>
+                  <input id="interval-work" name="work" type="number" inputmode="numeric" min="5" value="30" />
+                  <p class="helper">Push during this block.</p>
+                </div>
+                <div>
+                  <label for="interval-rest">Rest seconds</label>
+                  <input id="interval-rest" name="rest" type="number" inputmode="numeric" min="0" value="15" />
+                  <p class="helper">Breathing window after each work block.</p>
+                </div>
+                <div>
+                  <label for="interval-rounds">Rounds</label>
+                  <input id="interval-rounds" name="rounds" type="number" inputmode="numeric" min="1" value="8" />
+                  <p class="helper">Number of work/rest cycles.</p>
+                </div>
+              </div>
+              <div class="errors" data-errors></div>
+            </form>
+          </div>
+          <div class="config-controls" aria-label="Display and sound">
+            <h3>Display & Sound</h3>
+            <div class="toggles">
+              <label class="switch" aria-label="Toggle dark mode">
+                <span>Dark</span>
+                <input id="theme-toggle" type="checkbox" checked />
+                <span class="toggle-dot"></span>
+              </label>
+              <button class="quiet" id="sound-btn" aria-pressed="true">Sound: On</button>
+            </div>
+          </div>
+
+          <div class="setup-footer">
+            <details class="accordion">
+              <summary>Share / Embed <span aria-hidden="true">v</span></summary>
+              <div class="accordion-content">
+                <div class="share-row">
+                  <input id="share-link" type="text" readonly value="https://rb100.fitness/tools/timers/free-mobile-workout-timer.html" aria-label="Share or embed URL" />
+                  <button type="button" class="quiet" id="copy-link-btn">Copy link</button>
+                </div>
+                <div class="share-row">
+                  <textarea id="embed-snippet" readonly aria-label="Embed snippet"><iframe src="https://rb100.fitness/tools/timers/free-mobile-workout-timer.html" width="100%" height="620" style="border:0; border-radius:12px; overflow:hidden;" loading="lazy"></iframe></textarea>
+                  <button type="button" class="quiet" id="copy-embed-btn">Copy embed code</button>
+                </div>
+                <p class="helper" id="copy-status" style="min-height:18px;margin:0;"></p>
+              </div>
+            </details>
+            <button type="button" class="faq-btn" id="faq-btn">Quick FAQ</button>
+            <div class="logo-mark" aria-hidden="true"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+    <div class="modal" id="faq-modal" role="dialog" aria-modal="true" aria-labelledby="faq-title">
+      <div class="modal-card">
+        <h3 id="faq-title">Quick FAQ</h3>
+        <p><strong>Why separate setup from the session?</strong><br>Dial in your work, rest, and rounds on the back, then flip to a clean, on-floor session view.</p>
+        <p><strong>Can I mute cues?</strong><br>Yes. Use the Sound toggle. Visual flashes still mark changes.</p>
+        <p><strong>Does anything save?</strong><br>No. Everything lives in your browser while the page is open.</p>
+        <button class="modal-close" id="faq-close" type="button">Close</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Core timer state lives entirely in JS so the page never reloads.
+    const state = {
+      mode: 'countdown',
+      running: false,
+      configured: false,
+      timerId: null,
+      lastTick: null,
+      remainingMs: 0, // total session remaining
+      phaseRemainingMs: 0, // current phase remaining
+      sessionTotalMs: 0,
+      totalMs: 0,
+      round: 1,
+      totalRounds: 1,
+      emomWorkMs: 0,
+      workMs: 0,
+      restMs: 0,
+      mute: false,
+      minuteIndex: 0,
+      phase: 'work',
+    };
+
+    const chips = document.querySelectorAll('.chip');
+    const panels = document.querySelectorAll('[data-mode-form]');
+    const timeDisplay = document.getElementById('time-display');
+    const statusText = document.getElementById('status-text');
+    const subText = document.getElementById('sub-text');
+    const ring = document.getElementById('ring');
+    const phaseLabel = document.getElementById('phase-label');
+    const modeLabel = document.getElementById('mode-label');
+    const roundLabel = document.getElementById('round-label');
+    const phaseMeta = document.getElementById('phase-meta');
+    const sessionTime = document.getElementById('session-time');
+    const sessionProgressFill = document.getElementById('session-progress-fill');
+    const sessionProgressBar = document.getElementById('session-progress-bar');
+    const soundBtn = document.getElementById('sound-btn');
+    const themeToggle = document.getElementById('theme-toggle');
+    const card3d = document.getElementById('card3d');
+    const toSessionBtn = document.getElementById('to-session-btn');
+    const toSetupBtn = document.getElementById('to-setup-btn');
+    const sessionStartBtn = document.getElementById('session-start-btn');
+    const sessionResetBtn = document.getElementById('session-reset-btn');
+    const faqBtn = document.getElementById('faq-btn');
+    const faqModal = document.getElementById('faq-modal');
+    const faqClose = document.getElementById('faq-close');
+    const copyLinkBtn = document.getElementById('copy-link-btn');
+    const copyEmbedBtn = document.getElementById('copy-embed-btn');
+    const shareLink = document.getElementById('share-link');
+    const embedSnippet = document.getElementById('embed-snippet');
+    const copyStatus = document.getElementById('copy-status');
+
+    let audioCtx;
+    let wakeLock;
+
+    chips.forEach((chip) => chip.addEventListener('click', () => setMode(chip.dataset.mode)));
+
+    soundBtn.addEventListener('click', () => {
+      state.mute = !state.mute;
+      soundBtn.textContent = state.mute ? 'Sound: Off' : 'Sound: On';
+      soundBtn.setAttribute('aria-pressed', String(!state.mute));
+    });
+
+    sessionStartBtn.addEventListener('click', () => {
+      if (state.running) {
+        pauseTimer();
+      } else {
+        handleStart();
+        flipToSession();
+      }
+    });
+
+    sessionResetBtn.addEventListener('click', resetTimer);
+
+    themeToggle.addEventListener('change', () => {
+      document.body.classList.toggle('theme-dark', themeToggle.checked);
+      document.body.classList.toggle('theme-light', !themeToggle.checked);
+    });
+
+    toSessionBtn.addEventListener('click', flipToSession);
+    toSetupBtn.addEventListener('click', flipToSetup);
+    copyLinkBtn.addEventListener('click', () => copyToClipboard(shareLink.value, 'Link copied'));
+    copyEmbedBtn.addEventListener('click', () => copyToClipboard(embedSnippet.value, 'Embed code copied'));
+    faqBtn.addEventListener('click', openFaq);
+    faqClose.addEventListener('click', closeFaq);
+    faqModal.addEventListener('click', (e) => { if (e.target === faqModal) closeFaq(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeFaq(); });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && state.running) engageWakeLock();
+    });
+
+    panels.forEach((form) => form.addEventListener('submit', (e) => e.preventDefault()));
+
+    function flipToSession() { card3d.classList.remove('flipped'); document.body.classList.add('session-mode'); }
+    function flipToSetup() { card3d.classList.add('flipped'); document.body.classList.remove('session-mode'); pauseTimer(); }
+
+    function setMode(mode) {
+      if (state.mode === mode) return;
+      state.mode = mode;
+      chips.forEach((chip) => {
+        const active = chip.dataset.mode === mode;
+        chip.classList.toggle('active', active);
+        chip.setAttribute('aria-selected', active);
+      });
+      panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.modeForm === mode));
+      resetTimer({ keepMode: true });
+      statusText.textContent = 'Enter your numbers and start.';
+      subText.textContent = 'Ready for work.';
+      modeLabel.textContent = labelForMode(mode);
+      updateRingVisuals();
+    }
+
+    function labelForMode(mode) {
+      if (mode === 'emom') return 'EMOM';
+      if (mode === 'interval') return 'Intervals';
+      return 'Countdown';
+    }
+
+    function handleStart() {
+      if (state.configured && !state.running && state.remainingMs > 0) {
+        resumeTimer();
+        return;
+      }
+      const config = validateInputs(state.mode);
+      if (!config.valid) {
+        showErrors(config.errors, state.mode);
+        return;
+      }
+      clearErrors();
+      applyConfig(config);
+      primeAudio();
+      state.running = true;
+      state.lastTick = performance.now();
+      state.configured = true;
+      statusText.textContent = 'Locked in. Timer is running.';
+      togglePlayIcon();
+      engageWakeLock();
+      requestAnimationFrame(loop);
+    }
+
+    function resumeTimer() {
+      state.running = true;
+      state.lastTick = performance.now();
+      statusText.textContent = 'Running.';
+      togglePlayIcon();
+      engageWakeLock();
+      requestAnimationFrame(loop);
+    }
+
+    function primeAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function showErrors(errors, mode) {
+      panels.forEach((panel) => {
+        panel.querySelector('[data-errors]').textContent = panel.dataset.modeForm === mode ? errors.join(' ') : '';
+      });
+    }
+
+    function clearErrors() { document.querySelectorAll('[data-errors]').forEach((el) => (el.textContent = '')); }
+
+    function validateInputs(mode) {
+      const result = { valid: false, errors: [], config: {} };
+      if (mode === 'countdown') {
+        const minutes = Number(document.getElementById('countdown-minutes').value);
+        const seconds = Number(document.getElementById('countdown-seconds').value);
+        if (Number.isNaN(minutes) || minutes < 0 || minutes > 999) result.errors.push('Minutes must be 0-999.');
+        if (Number.isNaN(seconds) || seconds < 0 || seconds > 59) result.errors.push('Seconds must be 0-59.');
+        const totalMs = (minutes * 60 + seconds) * 1000;
+        if (totalMs <= 0) result.errors.push('Set at least one second of work.');
+        if (!result.errors.length) { result.valid = true; result.config = { totalMs }; }
+      }
+
+      if (mode === 'emom') {
+        const minutes = Number(document.getElementById('emom-minutes').value);
+        const work = Number(document.getElementById('emom-work').value);
+        if (!minutes || minutes < 1) result.errors.push('Total minutes must be at least 1.');
+        if (minutes > 180) result.errors.push('Cap EMOM to 180 minutes.');
+        if (!work || work < 5 || work > 60) result.errors.push('Work seconds should be 5-60.');
+        if (!result.errors.length) { result.valid = true; result.config = { totalMs: minutes * 60 * 1000, workMs: work * 1000 }; }
+      }
+
+      if (mode === 'interval') {
+        const work = Number(document.getElementById('interval-work').value);
+        const rest = Number(document.getElementById('interval-rest').value);
+        const rounds = Number(document.getElementById('interval-rounds').value);
+        if (!work || work < 5) result.errors.push('Work block must be at least 5 seconds.');
+        if (rest < 0) result.errors.push('Rest cannot be negative.');
+        if (!rounds || rounds < 1 || rounds > 200) result.errors.push('Rounds must be between 1 and 200.');
+        if (!result.errors.length) { result.valid = true; result.config = { workMs: work * 1000, restMs: rest * 1000, rounds }; }
+      }
+
+      return result;
+    }
+
+    function applyConfig(config) {
+      cancelAnimationFrame(state.timerId);
+      state.running = false;
+      state.lastTick = null;
+      state.round = 1;
+      state.minuteIndex = 0;
+      state.configured = true;
+      if (state.mode === 'countdown') {
+        state.remainingMs = config.config.totalMs;
+        state.sessionTotalMs = config.config.totalMs;
+        state.totalMs = config.config.totalMs;
+        state.phaseRemainingMs = config.config.totalMs;
+        state.phase = 'work';
+        statusText.textContent = 'Countdown ready. Hit start and move.';
+        subText.textContent = 'One continuous block.';
+      }
+      if (state.mode === 'emom') {
+        state.totalMs = config.config.totalMs;
+        state.sessionTotalMs = config.config.totalMs;
+        state.remainingMs = config.config.totalMs;
+        state.emomWorkMs = config.config.workMs;
+        state.phaseRemainingMs = config.config.workMs;
+        state.phase = 'work';
+        statusText.textContent = 'EMOM primed. Round 1 starts immediately.';
+        subText.textContent = 'Work first, then cruise until the next minute.';
+      }
+      if (state.mode === 'interval') {
+        state.totalRounds = config.config.rounds;
+        state.round = 1;
+        state.workMs = config.config.workMs;
+        state.restMs = config.config.restMs;
+        state.phaseRemainingMs = config.config.workMs;
+        state.phase = 'work';
+        const restTotal = state.restMs * Math.max(0, state.totalRounds - 1);
+        const workTotal = state.workMs * state.totalRounds;
+        state.sessionTotalMs = restTotal + workTotal;
+        state.remainingMs = state.sessionTotalMs;
+        statusText.textContent = 'Intervals staged. Work phase comes first.';
+        subText.textContent = `Round 1 of ${state.totalRounds}.`;
+      }
+      togglePlayIcon();
+      updateDisplay();
+    }
+
+    function loop(timestamp) {
+      if (!state.running) return;
+      const delta = timestamp - (state.lastTick || timestamp);
+      state.lastTick = timestamp;
+
+      if (state.mode === 'countdown') handleCountdown(delta);
+      if (state.mode === 'emom') handleEmom(delta);
+      if (state.mode === 'interval') handleInterval(delta);
+
+      updateDisplay();
+      if (state.running) state.timerId = requestAnimationFrame(loop);
+    }
+
+    function handleCountdown(delta) {
+      state.remainingMs = Math.max(0, state.remainingMs - delta);
+      state.phaseRemainingMs = state.remainingMs;
+      if (state.remainingMs === 0) finishTimer('Countdown done. Nice work!');
+    }
+
+    function handleEmom(delta) {
+      state.remainingMs = Math.max(0, state.remainingMs - delta);
+      const elapsed = state.sessionTotalMs - state.remainingMs;
+      const currentMinute = Math.floor(elapsed / 60000);
+      const msIntoMinute = elapsed - currentMinute * 60000;
+      const previousPhase = state.phase;
+
+      if (currentMinute !== state.minuteIndex) {
+        state.minuteIndex = currentMinute;
+        triggerCue('New minute — go!');
+      }
+
+      const inWork = msIntoMinute < state.emomWorkMs;
+      state.phaseRemainingMs = inWork ? state.emomWorkMs - msIntoMinute : 60000 - msIntoMinute;
+      state.phase = inWork ? 'work' : 'rest';
+      statusText.textContent = inWork ? 'Work — crush this minute.' : 'Reset & breathe.';
+      subText.textContent = `Minute ${currentMinute + 1} • Next ${inWork ? 'rest' : 'set'} in ${formatTime(state.phaseRemainingMs)}`;
+
+      if (previousPhase && previousPhase !== state.phase && state.phase === 'rest') triggerCue('Rest period');
+      if (state.remainingMs === 0) finishTimer('EMOM complete. Strong finish!');
+    }
+
+    function handleInterval(delta) {
+      state.phaseRemainingMs = Math.max(0, state.phaseRemainingMs - delta);
+      state.remainingMs = Math.max(0, state.remainingMs - delta);
+
+      if (state.phaseRemainingMs === 0) {
+        if (state.phase === 'rest') {
+          state.round += 1;
+          if (state.round > state.totalRounds) { finishTimer('Intervals done. You owned it.'); return; }
+          state.phase = 'work';
+          state.phaseRemainingMs = state.workMs;
+          triggerCue('Back to work');
+        } else {
+          if (state.restMs > 0) {
+            state.phase = 'rest';
+            state.phaseRemainingMs = state.restMs;
+            triggerCue('Rest');
+          } else {
+            state.round += 1;
+            if (state.round > state.totalRounds) { finishTimer('Intervals done. You owned it.'); return; }
+            state.phaseRemainingMs = state.workMs;
+            triggerCue('Next round');
+          }
+        }
+      }
+    }
+
+    function triggerCue(message) {
+      statusText.textContent = message;
+      flashRing();
+      if (!state.mute) playBeep();
+    }
+
+    function playBeep() {
+      if (!audioCtx) return;
+      const duration = 0.15;
+      const oscillator = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      oscillator.type = 'square';
+      oscillator.frequency.value = 880;
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+      oscillator.connect(gain).connect(audioCtx.destination);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + duration);
+    }
+
+    function flashRing() {
+      ring.style.boxShadow = '0 0 0 999px rgba(239, 68, 68, 0.04) inset, 0 40px 80px rgba(0,0,0,0.35)';
+      setTimeout(() => (ring.style.boxShadow = '0 40px 80px rgba(0,0,0,0.35), 0 0 0 12px rgba(0,0,0,0.2)'), 200);
+    }
+
+    function finishTimer(message) {
+      state.running = false;
+      cancelAnimationFrame(state.timerId);
+      state.remainingMs = 0;
+      state.phaseRemainingMs = 0;
+      triggerCue(message);
+      subText.textContent = 'Tap reset to set new times.';
+      togglePlayIcon();
+      releaseWakeLock();
+      updateDisplay();
+    }
+
+    function pauseTimer() {
+      if (!state.running) return;
+      state.running = false;
+      cancelAnimationFrame(state.timerId);
+      statusText.textContent = 'Paused. Tap start to resume.';
+      phaseLabel.textContent = 'PAUSED';
+      togglePlayIcon();
+      releaseWakeLock();
+      updateRingVisuals();
+    }
+
+    function resetTimer(opts = {}) {
+      cancelAnimationFrame(state.timerId);
+      state.running = false;
+      state.lastTick = null;
+      state.remainingMs = 0;
+      state.phaseRemainingMs = 0;
+      state.totalMs = 0;
+      state.sessionTotalMs = 0;
+      state.round = 1;
+      state.totalRounds = 1;
+      state.minuteIndex = 0;
+      state.phase = 'work';
+      state.configured = false;
+      if (!opts.keepMode) state.mode = 'countdown';
+      timeDisplay.textContent = '00:00';
+      statusText.textContent = 'Press start when ready.';
+      subText.textContent = 'Ready for work.';
+      phaseLabel.textContent = 'READY';
+      modeLabel.textContent = labelForMode(state.mode);
+      roundLabel.textContent = '1';
+      phaseMeta.textContent = 'Ready';
+      togglePlayIcon();
+      updateRingVisuals();
+      updateSessionProgress();
+      releaseWakeLock();
+    }
+
+    function togglePlayIcon() {
+      sessionStartBtn.innerHTML = '';
+      sessionStartBtn.classList.remove('muted');
+      const icon = document.createElement('div');
+      if (state.running) {
+        sessionResetBtn.classList.add('muted');
+        icon.className = 'icon-pause';
+        icon.innerHTML = '<span></span><span></span>';
+      } else {
+        sessionResetBtn.classList.toggle('muted', state.remainingMs === 0);
+        icon.className = 'icon-play';
+      }
+      sessionStartBtn.appendChild(icon);
+    }
+
+    function updateDisplay() {
+      const secondsOnly = shouldUseSecondsOnly();
+      timeDisplay.textContent = formatTime(getPrimaryTime(), secondsOnly);
+      if (state.mode === 'emom') {
+        const totalMinutes = Math.max(1, Math.round(state.sessionTotalMs / 60000));
+        const currentMinute = Math.min(totalMinutes, Math.floor((state.sessionTotalMs - state.remainingMs) / 60000) + 1);
+        roundLabel.textContent = currentMinute;
+      } else {
+        roundLabel.textContent = state.round;
+      }
+      phaseMeta.textContent = capitalize(state.phase || 'ready');
+      if (state.mode === 'interval' && state.totalRounds) subText.textContent = `${capitalize(state.phase || 'work')} • Round ${state.round} of ${state.totalRounds}`;
+      if (state.mode === 'countdown' && state.running) statusText.textContent = 'Countdown in motion.';
+      let label = 'PAUSED';
+      if (state.running) label = state.phase === 'rest' ? 'REST' : 'WORK';
+      if (!state.running && state.remainingMs === 0) label = 'READY';
+      phaseLabel.textContent = label;
+      updateRingVisuals();
+      updateSessionProgress();
+    }
+
+    function updateRingVisuals() {
+      const progress = getProgress();
+      ring.style.setProperty('--progress', progress + 'deg');
+      const color = state.phase === 'rest' ? 'var(--accent-rest)' : state.running ? 'var(--accent-work)' : 'var(--accent-ready)';
+      ring.style.setProperty('--accent-phase', color);
+      const inner = ring.querySelector('.ring-inner');
+      inner.style.color = state.running ? color : 'var(--accent-ready)';
+      phaseLabel.style.color = state.running ? color : 'var(--accent-ready)';
+      timeDisplay.style.color = state.running ? color : 'var(--accent-ready)';
+      ring.style.setProperty('--ring-gradient', buildRingGradient());
+    }
+
+    function getPrimaryTime() {
+      if (state.mode === 'emom') return state.phaseRemainingMs;
+      if (state.mode === 'interval') return state.phaseRemainingMs;
+      return state.phaseRemainingMs || state.remainingMs;
+    }
+
+    function getPhaseTotalMs() {
+      if (state.mode === 'countdown') return state.sessionTotalMs || state.totalMs || state.remainingMs || state.phaseRemainingMs;
+      if (state.mode === 'emom') return state.phase === 'rest' ? Math.max(0, 60000 - state.emomWorkMs) : state.emomWorkMs;
+      if (state.mode === 'interval') return state.phase === 'rest' ? state.restMs : state.workMs;
+      return state.phaseRemainingMs || state.sessionTotalMs || state.totalMs || state.remainingMs;
+    }
+
+    function getProgress() {
+      const total = getPhaseTotalMs();
+      const remaining = state.phaseRemainingMs || state.remainingMs;
+      if (!total) return 0;
+      const percent = Math.min(1, Math.max(0, 1 - remaining / total));
+      return percent * 360;
+    }
+
+    function getCycleBreakdown() {
+      if (state.mode === 'emom') {
+        const work = state.emomWorkMs || 0;
+        const rest = Math.max(0, 60000 - work);
+        return { work, rest, total: 60000 };
+      }
+      if (state.mode === 'interval') {
+        const work = state.workMs || 0;
+        const rest = state.restMs || 0;
+        const total = Math.max(1, work + rest);
+        return { work, rest, total };
+      }
+      const total = state.sessionTotalMs || state.totalMs || state.phaseRemainingMs || 0;
+      return { work: total, rest: 0, total };
+    }
+
+    function buildRingGradient() {
+      const { work, rest, total } = getCycleBreakdown();
+      if (!total) return 'conic-gradient(var(--accent-ready) 0deg 360deg)';
+
+      const workDeg = total ? (work / total) * 360 : 360;
+      const restDeg = 360 - workDeg;
+      const phaseTotalMs = state.phase === 'rest' ? rest || 0 : work || total;
+      const remainingMs = Math.max(0, state.phaseRemainingMs || 0);
+      const clamped = phaseTotalMs ? Math.min(1, Math.max(0, remainingMs / phaseTotalMs)) : 0;
+      const elapsedFrac = 1 - clamped;
+
+      // Simple single-phase (countdown/stopwatch) gradient.
+      if (!rest) {
+        const elapsedDeg = elapsedFrac * 360;
+        return `conic-gradient(var(--track) 0deg ${elapsedDeg}deg, var(--accent-work) ${elapsedDeg}deg 360deg)`;
+      }
+
+      if (state.phase === 'rest') {
+        const restElapsedDeg = elapsedFrac * restDeg;
+        const restElapsedEnd = workDeg + restElapsedDeg;
+        return `conic-gradient(var(--track) 0deg ${workDeg}deg, var(--track) ${workDeg}deg ${restElapsedEnd}deg, var(--accent-rest) ${restElapsedEnd}deg 360deg)`;
+      }
+
+      const workElapsedDeg = elapsedFrac * workDeg;
+      return `conic-gradient(var(--track) 0deg ${workElapsedDeg}deg, var(--accent-work) ${workElapsedDeg}deg ${workDeg}deg, var(--accent-rest) ${workDeg}deg 360deg)`;
+    }
+
+    function getSessionTotalMs() {
+      return state.sessionTotalMs || state.totalMs || 0;
+    }
+
+    function getSessionProgressPercent() {
+      const total = getSessionTotalMs();
+      const remaining = state.remainingMs;
+      if (!total) return 0;
+      const percent = Math.min(1, Math.max(0, 1 - (remaining || 0) / total));
+      return Math.round(percent * 100);
+    }
+
+    function updateSessionProgress() {
+      const total = getSessionTotalMs();
+      const remaining = state.remainingMs;
+      const secondsOnly = total > 0 && total <= 60000;
+      sessionTime.textContent = total ? formatTime(remaining, secondsOnly) : '--:--';
+      const percent = getSessionProgressPercent();
+      sessionProgressFill.style.width = percent + '%';
+      sessionProgressBar.setAttribute('aria-valuenow', percent);
+    }
+
+    function shouldUseSecondsOnly() {
+      const primaryMs = getPrimaryTime();
+      const countdownShort = state.mode === 'countdown' && state.sessionTotalMs > 0 && state.sessionTotalMs <= 60000;
+      const emomShort = state.mode === 'emom' && primaryMs > 0 && primaryMs <= 60000;
+      const intervalShort = state.mode === 'interval' && primaryMs > 0 && primaryMs <= 60000;
+      return countdownShort || emomShort || intervalShort;
+    }
+
+    function formatTime(ms, secondsOnly = false) {
+      const totalSeconds = Math.max(0, Math.round(ms / 1000));
+      if (secondsOnly) return ':' + String(totalSeconds).padStart(2, '0');
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function capitalize(str) { return str ? str.charAt(0).toUpperCase() + str.slice(1) : ''; }
+
+    function openFaq() { faqModal.classList.add('active'); }
+    function closeFaq() { faqModal.classList.remove('active'); }
+
+    async function engageWakeLock() {
+      if (!('wakeLock' in navigator) || wakeLock) return;
+      try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => { wakeLock = null; });
+      } catch (err) {
+        console.warn('Wake Lock not available', err);
+      }
+    }
+
+    function releaseWakeLock() {
+      if (!wakeLock) return;
+      wakeLock.release().catch(() => {}).finally(() => { wakeLock = null; });
+    }
+
+    function copyToClipboard(text, message) {
+      navigator.clipboard?.writeText(text).then(() => {
+        copyStatus.textContent = message;
+        setTimeout(() => (copyStatus.textContent = ''), 2000);
+      });
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').catch((err) => console.error('SW registration failed', err));
+      });
+    }
+
+    // Initialize default visuals.
+    document.body.classList.add('theme-dark');
+    updateRingVisuals();
+    togglePlayIcon();
+    updateSessionProgress();
+  </script>
+</body>
+</html>
