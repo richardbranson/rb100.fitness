@@ -1,8 +1,7 @@
-# rb100 Tool Kit
 A collection of developer resources, embed widgets, API examples and open-source tools from [RB100.Fitness](https://rb100.fitness/). Designed for gyms, PTs and hybrid training platforms wanting to integrate evidence-based exercise cards, WOD modules and performance calculators directly into their websites and apps.
 
-[rb100.Fitness on GitHub Pages](https://richardbranson.github.io/rb100.fitness/)
-[rb.100.Fitness Tools](https://richardbranson.github.io/rb100.fitness/fitness-tools/)
+- [rb100.Fitness on GitHub Pages](https://richardbranson.github.io/rb100.fitness/)  
+- [rb.100.Fitness Tools](https://richardbranson.github.io/rb100.fitness/fitness-tools/)
 
 ⸻
 
