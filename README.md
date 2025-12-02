@@ -1,11 +1,11 @@
-# rb100.github.io
-A collection of developer resources, embed widgets, API examples and open-source tools from RB100.Fitness. Designed for gyms, PTs and hybrid training platforms wanting to integrate evidence-based exercise cards, WOD modules and performance calculators directly into their websites and apps.
+# rb100 Tool Kit
+A collection of developer resources, embed widgets, API examples and open-source tools from [RB100.Fitness](https://rb100.fitness/). Designed for gyms, PTs and hybrid training platforms wanting to integrate evidence-based exercise cards, WOD modules and performance calculators directly into their websites and apps.
 
 Absolutely — here is your README.md in clean, ready-to-paste Markdown format, following GitHub conventions and structured for clarity, SEO and developer-friendliness.
 
 ⸻
 
-RB100 Fitness Integration Toolkit
+## RB100 Fitness Integration Toolkit
 
 Embed RB100 exercise cards, workouts, and training tools into your website.
 
@@ -96,15 +96,16 @@ If you create something using this toolkit, feel free to share it — we’d lov
 
 RB100 is a hybrid-fitness platform specialising in the intersection of strength, engine capacity, and race performance.
 We produce:
-	•	Exercise library
+	•	[Exercise library](https://rb100.fitness/exercises)
+	•	[Exercise of the Day]([https://rb100.fitness/](http://rb100.fitness/exercises/exercise-of-the-day/))
 	•	Training plans
-	•	HYROX series
-	•	100-challenge workouts
+	•	[HYROX Article Series](https://rb100.fitness/hyrox)
+	•	[100-challenge workouts](https://rb100.fitness/relentless-bravery-challenges/)
 	•	Athlete insights
 	•	Performance tools and calculators
 
 Visit the full platform here:
-https://rb100.fitness
+[RB100.Fitness](https://rb100.fitness/)
 
 ⸻
 
