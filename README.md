@@ -2,7 +2,8 @@ A collection of developer resources, embed widgets, API examples and open-source
 
 - [rb100.Fitness on GitHub Pages](https://richardbranson.github.io/rb100.fitness/)  
 - [rb.100.Fitness Tools](https://richardbranson.github.io/rb100.fitness/fitness-tools/)
-
+1. [Exercise Library Embed](https://richardbranson.github.io/rb100.fitness/#exercise-library-embed)
+2. [Workout of the Day (WOD) Embed](https://richardbranson.github.io/rb100.fitness/#exercise-library-embed)
 ⸻
 
 ## RB100 Fitness Integration Toolkit
@@ -15,7 +16,7 @@ RB100.Fitness publishes evidence-based exercise guides, HYROX training resources
 
 ⸻
 
-1. Exercise Library Embed
+### 1. Exercise Library Embed
 
 Easily display any RB100 Exercise Card on your site.
 ```
@@ -27,7 +28,7 @@ https://rb100.fitness/exercise/
 ```
 ⸻
 
-2. Workout of the Day (WOD) Embed
+### 2. Workout of the Day (WOD) Embed
 
 Embed the RB100 daily or weekly workout on any site:
 ```
@@ -41,7 +42,7 @@ Customisation options (coming soon):
 
 ⸻
 
-3. REST API Access
+### 3. REST API Access
 
 All RB100 exercises, including ACF fields, are accessible via the WordPress REST API.
 
@@ -63,7 +64,7 @@ Use this data to build custom components, dashboards or integrations.
 
 ⸻
 
-4. Tools & Calculators
+### 4. Tools & Calculators
 
 This repo will include source code for training tools developed for RB100, such as:
 - Zone 2 Heart Rate Calculators
@@ -77,7 +78,7 @@ Open-source examples will be added over time to support gyms, coaches and develo
 
 ⸻
 
-5. Who This Is For
+### 5. Who This Is For
 
 This integration toolkit is designed for:
 - Gym owners
@@ -92,7 +93,7 @@ If you create something using this toolkit, feel free to share it — we’d lov
 
 ⸻
 
-6. About RB100.Fitness
+### 6. About RB100.Fitness
 
 RB100 is a hybrid-fitness platform specialising in the intersection of strength, engine capacity, and race performance.
 We produce:
@@ -109,7 +110,7 @@ Visit the full platform here:
 
 ⸻
 
-7. License
+### 7. License
 
 This project is licensed under the MIT License unless otherwise stated.
 You are free to modify, adapt and integrate components as needed.
